@@ -1,0 +1,37 @@
+{
+  "name": "admincell-pro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AdminCell Pro — sistema comunitario multiplataforma (Web, Escritorio y Android) con base de datos local offline-first.",
+  "author": "EarmLog",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "cap:sync": "next build && cap sync android",
+    "cap:add": "cap add android",
+    "cap:open": "cap open android",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
+  },
+  "dependencies": {
+    "@capacitor-community/sqlite": "^6.0.2",
+    "@capacitor/core": "^6.2.0",
+    "@tauri-apps/api": "^2.1.1",
+    "@tauri-apps/plugin-sql": "^2.2.0",
+    "dexie": "^4.0.10",
+    "next": "^14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/cli": "^6.2.0",
+    "@tauri-apps/cli": "^2.1.0",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17"
+  }
+}

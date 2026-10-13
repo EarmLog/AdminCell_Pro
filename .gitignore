@@ -1,0 +1,27 @@
+# Dependencias
+node_modules/
+
+# Compilación de Next.js
+.next/
+out/
+
+# Entorno (secretos locales)
+.env
+.env.local
+.env*.local
+
+# Tauri (Rust)
+src-tauri/target/
+src-tauri/gen/
+
+# Sistema operativo / editores
+.DS_Store
+*.log
+.idea/
+.vscode/
+
+# Archivos de ejemplo (material de referencia, no se versiona)
+Ejemplo/
+
+# APK generado localmente
+apk/

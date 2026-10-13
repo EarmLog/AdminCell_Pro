@@ -1,0 +1,22 @@
+# ============================================================================
+#  docker-compose de AdminCell Pro
+# ----------------------------------------------------------------------------
+#  Levanta el entorno de desarrollo con recarga en caliente (hot reload).
+#  Uso:  docker compose up
+# ============================================================================
+services:
+  app:
+    build:
+      context: .
+      target: desarrollo
+    container_name: admincell-pro-dev
+    ports:
+      - '3000:3000'
+    volumes:
+      # Monta el código para recarga en caliente, sin pisar node_modules
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_TELEMETRY_DISABLED=1
+    command: npm run dev

@@ -1,0 +1,14 @@
+{
+  "appId": "com.earmlog.admincellpro",
+  "appName": "AdminCell Pro",
+  "webDir": "out",
+  "android": {
+    "allowMixedContent": true
+  },
+  "plugins": {
+    "CapacitorSQLite": {
+      "androidDatabaseLocation": "default",
+      "androidIsEncryption": false
+    }
+  }
+}
