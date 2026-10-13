@@ -1,0 +1,61 @@
+# ============================================================================
+#  Compilación del APK de Android (Capacitor)
+# ----------------------------------------------------------------------------
+#  Compila la exportación web de Next.js, la sincroniza con el proyecto Android
+#  de Capacitor y genera el APK de depuración como artefacto descargable.
+# ============================================================================
+name: Compilar Android (APK)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'capacitor.config.ts'
+      - 'package.json'
+      - 'next.config.js'
+      - '.github/workflows/android-build.yml'
+  workflow_dispatch:
+
+jobs:
+  compilar:
+    name: Generar APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Preparar Java (JDK 21)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Preparar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Instalar dependencias de Node
+        run: npm ci
+
+      - name: Compilar la web y sincronizar con Android
+        run: npm run cap:sync
+
+      - name: Dar permisos al wrapper de Gradle
+        run: chmod +x android/gradlew
+
+      - name: Compilar el APK (debug)
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon --console=plain
+
+      - name: Subir el APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AdminCellPro-Android
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

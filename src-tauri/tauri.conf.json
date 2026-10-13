@@ -1,0 +1,47 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "AdminCell Pro",
+  "version": "1.0.0",
+  "identifier": "com.earmlog.admincellpro",
+  "build": {
+    "frontendDist": "../out",
+    "devUrl": "http://localhost:3000",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "AdminCell Pro",
+        "width": 1180,
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 600,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "copyright": "© 2026 EarmLog",
+    "category": "Utility",
+    "shortDescription": "Sistema comunitario de reportes de células",
+    "longDescription": "AdminCell Pro gestiona sectores, períodos, líderes y reportes de células, con análisis y gráficas. Funciona sin conexión."
+  },
+  "plugins": {
+    "sql": {
+      "preload": ["sqlite:admincell_pro.db"]
+    }
+  }
+}

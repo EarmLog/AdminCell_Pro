@@ -1,0 +1,82 @@
+# ============================================================================
+#  Compilación de la aplicación de escritorio (Tauri 2)
+# ----------------------------------------------------------------------------
+#  Genera el ejecutable/instalador de Windows y el de Linux, y los sube como
+#  artefactos descargables de la ejecución del workflow.
+#  No se compila localmente porque requiere Rust: GitHub Actions se encarga.
+# ============================================================================
+name: Compilar escritorio (Tauri)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'src-tauri/**'
+      - 'package.json'
+      - 'next.config.js'
+      - '.github/workflows/tauri-build.yml'
+  workflow_dispatch:
+
+jobs:
+  compilar:
+    name: ${{ matrix.plataforma }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - plataforma: windows-latest
+            nombre: Windows
+          - plataforma: ubuntu-latest
+            nombre: Linux
+    runs-on: ${{ matrix.plataforma }}
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Preparar Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Caché de Rust
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Dependencias del sistema (Linux)
+        if: matrix.plataforma == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libgtk-3-dev \
+            libsoup-3.0-dev \
+            build-essential
+
+      - name: Instalar dependencias de Node
+        run: npm ci
+
+      - name: Compilar con Tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Subir instaladores
+        uses: actions/upload-artifact@v4
+        with:
+          name: AdminCellPro-${{ matrix.nombre }}
+          path: |
+            src-tauri/target/release/bundle/**/*.msi
+            src-tauri/target/release/bundle/**/*.exe
+            src-tauri/target/release/bundle/**/*.AppImage
+            src-tauri/target/release/bundle/**/*.deb
+          if-no-files-found: warn
