@@ -14,6 +14,7 @@ import { usarDatos } from '@/context/DatosContext';
 import { listarReportes } from '@/lib/repositorio';
 import Tarjeta from '@/components/ui/Tarjeta';
 import EncabezadoPagina from '@/components/ui/EncabezadoPagina';
+import Cargando from '@/components/ui/Cargando';
 import { IconoSectores, IconoPeriodo, IconoLider, IconoReporte, IconoAnalisis } from '@/components/Iconos';
 
 function TarjetaResumen({ href, etiqueta, valor, Icono }) {
@@ -55,7 +56,7 @@ export default function PaginaInicio() {
   }, [periodoActivo]);
 
   if (cargando) {
-    return <p className="text-sm text-slate-400">Cargando…</p>;
+    return <Cargando />;
   }
 
   return (
@@ -70,7 +71,7 @@ export default function PaginaInicio() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <TarjetaResumen href="/periodos/" etiqueta="Períodos" valor={periodos.length} Icono={IconoPeriodo} />
         <TarjetaResumen href="/sectores/" etiqueta="Sectores" valor={sectores.length} Icono={IconoSectores} />
-        <TarjetaResumen href="/lideres/" etiqueta="Líderes" valor={lideres.length} IconoLider={true} Icono={IconoLider} />
+        <TarjetaResumen href="/lideres/" etiqueta="Líderes" valor={lideres.length} Icono={IconoLider} />
         <TarjetaResumen href="/reportes/" etiqueta="Reportes (período activo)" valor={reportesActivos} Icono={IconoReporte} />
       </div>
 

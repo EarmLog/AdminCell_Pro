@@ -13,6 +13,7 @@ import { usarDatos } from '@/context/DatosContext';
 import { usarNotificaciones } from '@/context/NotificacionesContext';
 import { listarReportes, eliminarReporte } from '@/lib/repositorio';
 import EncabezadoPagina from '@/components/ui/EncabezadoPagina';
+import Cargando from '@/components/ui/Cargando';
 import Boton from '@/components/ui/Boton';
 import Selector from '@/components/ui/Selector';
 import { Campo } from '@/components/ui/Campo';
@@ -65,7 +66,7 @@ export default function PaginaReportes() {
     }
   };
 
-  if (cargando) return <p className="text-sm text-slate-400">Cargando…</p>;
+  if (cargando) return <Cargando />;
   if (periodos.length === 0) return <AvisoSinPeriodo />;
 
   return (
@@ -119,7 +120,7 @@ export default function PaginaReportes() {
           icono={<IconoReporte size={30} />}
         />
       ) : cargandoFilas ? (
-        <p className="text-sm text-slate-400">Cargando reportes…</p>
+        <Cargando texto="Cargando reportes…" />
       ) : filas.length === 0 ? (
         <EstadoVacio
           titulo="No hay reportes"

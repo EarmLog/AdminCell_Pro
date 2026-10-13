@@ -139,7 +139,7 @@ export default function Layout({ children }) {
 
       <div className="lg:flex">
         {/* Barra lateral (escritorio) */}
-        <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white p-4 lg:flex lg:flex-col dark:border-slate-700 dark:bg-slate-800 no-imprimir">
+        <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white p-4 lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:overflow-y-auto dark:border-slate-700 dark:bg-slate-800 no-imprimir">
           <div className="mb-4 flex items-center justify-between">
             <span className="text-lg font-bold text-marca-700 dark:text-marca-300">AdminCell Pro</span>
             <BotonTema />
@@ -152,7 +152,9 @@ export default function Layout({ children }) {
         </aside>
 
         {/* Contenido */}
-        <main className="contenido-imprimible min-w-0 flex-1 p-4 lg:p-6">{children}</main>
+        <main className="contenido-imprimible min-w-0 flex-1 p-4 lg:p-6">
+          <div className="mx-auto w-full max-w-7xl">{children}</div>
+        </main>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@
 import { useEffect, useState } from 'react';
 import { analisisPorPeriodo } from '@/lib/repositorio';
 import EncabezadoPagina from '@/components/ui/EncabezadoPagina';
+import Cargando from '@/components/ui/Cargando';
 import Boton from '@/components/ui/Boton';
 import EstadoVacio from '@/components/ui/EstadoVacio';
 import SemaforoPorcentaje from '@/components/SemaforoPorcentaje';
@@ -28,7 +29,7 @@ export default function PaginaAnalisisPorPeriodo() {
       .finally(() => setCargando(false));
   }, []);
 
-  if (cargando) return <p className="text-sm text-slate-400">Cargando…</p>;
+  if (cargando) return <Cargando />;
 
   const { filas, totales } = resultado;
   const datosGrafica = filas.map((f) => ({

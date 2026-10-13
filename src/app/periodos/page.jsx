@@ -13,6 +13,7 @@ import { usarDatos } from '@/context/DatosContext';
 import { usarNotificaciones } from '@/context/NotificacionesContext';
 import { eliminarPeriodo, contarReportesPorPeriodo } from '@/lib/repositorio';
 import EncabezadoPagina from '@/components/ui/EncabezadoPagina';
+import Cargando from '@/components/ui/Cargando';
 import Boton from '@/components/ui/Boton';
 import Badge from '@/components/ui/Badge';
 import EstadoVacio from '@/components/ui/EstadoVacio';
@@ -58,7 +59,7 @@ export default function PaginaPeriodos() {
       />
 
       {cargando ? (
-        <p className="text-sm text-slate-400">Cargando…</p>
+        <Cargando />
       ) : periodos.length === 0 ? (
         <EstadoVacio
           titulo="No hay períodos"

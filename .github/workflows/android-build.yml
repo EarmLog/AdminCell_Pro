@@ -11,7 +11,7 @@ on:
     branches: [main]
     paths:
       - 'src/**'
-      - 'capacitor.config.ts'
+      - 'capacitor.config.json'
       - 'package.json'
       - 'next.config.js'
       - '.github/workflows/android-build.yml'

@@ -13,6 +13,7 @@ import { usarDatos } from '@/context/DatosContext';
 import { usarNotificaciones } from '@/context/NotificacionesContext';
 import { eliminarLider } from '@/lib/repositorio';
 import EncabezadoPagina from '@/components/ui/EncabezadoPagina';
+import Cargando from '@/components/ui/Cargando';
 import Boton from '@/components/ui/Boton';
 import EstadoVacio from '@/components/ui/EstadoVacio';
 import ModalConfirmar from '@/components/ui/ModalConfirmar';
@@ -50,7 +51,7 @@ export default function PaginaLideres() {
       />
 
       {cargando ? (
-        <p className="text-sm text-slate-400">Cargando…</p>
+        <Cargando />
       ) : lideres.length === 0 ? (
         <EstadoVacio
           titulo="No hay líderes"
