@@ -14,6 +14,9 @@ out/
 src-tauri/target/
 src-tauri/gen/
 
+# Vercel (configuración local)
+.vercel/
+
 # Sistema operativo / editores
 .DS_Store
 *.log
@@ -25,3 +28,5 @@ Ejemplo/
 
 # APK generado localmente
 apk/
+.vercel
+.env*
