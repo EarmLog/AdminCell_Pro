@@ -15,6 +15,7 @@ import { listarReportes, eliminarReporte, cambiarEstadoReporte } from '@/lib/rep
 import EncabezadoPagina from '@/components/ui/EncabezadoPagina';
 import Cargando from '@/components/ui/Cargando';
 import Boton from '@/components/ui/Boton';
+import Selector from '@/components/ui/Selector';
 import EstadoVacio from '@/components/ui/EstadoVacio';
 import ModalConfirmar from '@/components/ui/ModalConfirmar';
 import ModalReporte from '@/components/modales/ModalReporte';
@@ -29,8 +30,10 @@ export default function PaginaReportes() {
     periodoActivo,
     periodoSeleccionado,
     sectorActivo,
+    sectorSeleccionado,
     setSectorActivo,
-    cargando
+    cargando,
+    recargar
   } = usarDatos();
   const { notificar } = usarNotificaciones();
   const [filas, setFilas] = useState([]);
@@ -39,20 +42,20 @@ export default function PaginaReportes() {
   const [cargandoFilas, setCargandoFilas] = useState(false);
 
   const cargar = useCallback(async () => {
-    if (!periodoActivo) {
+    if (!periodoActivo || !sectorActivo) {
       setFilas([]);
       return;
     }
     setCargandoFilas(true);
     try {
-      const lista = await listarReportes(periodoActivo);
+      const lista = await listarReportes(periodoActivo, { sectorId: sectorActivo });
       setFilas(lista);
     } catch {
       notificar('No se pudieron cargar los reportes.', 'error');
     } finally {
       setCargandoFilas(false);
     }
-  }, [periodoActivo, notificar]);
+  }, [periodoActivo, sectorActivo, notificar]);
 
   useEffect(() => {
     cargar();
@@ -82,7 +85,7 @@ export default function PaginaReportes() {
   return (
     <div className="flex flex-col gap-4">
       <EncabezadoPagina
-        titulo="Reportes"
+        titulo={sectorSeleccionado ? `Reportes · ${sectorSeleccionado.nombre}` : 'Reportes'}
         descripcion={periodoSeleccionado ? `Período: ${periodoSeleccionado.nombre}` : ''}
         acciones={
           <Boton
@@ -93,6 +96,18 @@ export default function PaginaReportes() {
           </Boton>
         }
       />
+
+      {sectores.length > 1 && (
+        <div className="max-w-xs no-imprimir">
+          <Selector
+            id="sector-activo"
+            etiqueta="Sector"
+            value={sectorActivo ?? ''}
+            onChange={(e) => setSectorActivo(Number(e.target.value))}
+            opciones={sectores.map((s) => ({ valor: s.id, etiqueta: `${s.nombre} (${s.codigo})` }))}
+          />
+        </div>
+      )}
 
       {sectores.length === 0 ? (
         <EstadoVacio
@@ -106,8 +121,8 @@ export default function PaginaReportes() {
             <Cargando texto="Cargando reportes…" />
           ) : filas.length === 0 ? (
             <EstadoVacio
-              titulo="No hay reportes"
-              descripcion="Registre el primer reporte de este período."
+              titulo="No hay reportes en este sector"
+              descripcion="Registre el primer reporte de este sector en el período activo."
               icono={<IconoReporte size={30} />}
               accion={
                 <Boton onClick={() => setModal({ abierto: true, reporte: null })}>
@@ -119,6 +134,7 @@ export default function PaginaReportes() {
             <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800">
               <TablaReportes
                 filas={filas}
+                ocultarSector
                 onEditar={(f) => setModal({ abierto: true, reporte: f })}
                 onEliminar={(f) => setPorEliminar(f)}
                 onToggleEstado={alternarEstado}

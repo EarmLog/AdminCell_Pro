@@ -22,10 +22,10 @@ export default function AvisoSinPeriodo() {
         Cree un período antes de registrar reportes. Los reportes y los análisis se organizan por período.
       </p>
       <Link
-        href="/periodos/"
+        href="/registros/"
         className="mt-1 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700"
       >
-        Ir a Períodos
+        Ir a Registros
       </Link>
     </div>
   );

@@ -8,10 +8,9 @@ import { usarTema } from '@/context/TemaContext';
 import Selector from '@/components/ui/Selector';
 import {
   IconoInicio,
-  IconoPeriodo,
   IconoReporte,
-  IconoRegistro,
   IconoAnalisis,
+  IconoRegistro,
   IconoSol,
   IconoLuna,
   IconoMenu,
@@ -20,7 +19,6 @@ import {
 
 const MODULOS = [
   { href: '/', etiqueta: 'Inicio', Icono: IconoInicio },
-  { href: '/periodos/', etiqueta: 'Períodos', Icono: IconoPeriodo },
   { href: '/registros/', etiqueta: 'Registros', Icono: IconoRegistro },
   { href: '/analisis-total/', etiqueta: 'Análisis Total', Icono: IconoAnalisis }
 ];

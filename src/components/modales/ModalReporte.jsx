@@ -60,7 +60,7 @@ function guardarLideres(lista) {
 }
 
 export default function ModalReporte({ abierto, reporte, onCerrar, sectorIdPredef = null }) {
-  const { sectores, periodoActivo } = usarDatos();
+  const { sectores, periodoActivo, recargar } = usarDatos();
   const { notificar } = usarNotificaciones();
   const [datos, setDatos] = useState(VACIO);
   const [inasistenciasManual, setInasistenciasManual] = useState(false);
@@ -126,6 +126,7 @@ export default function ModalReporte({ abierto, reporte, onCerrar, sectorIdPrede
         }
         const creado = await crearSector({ nombre: datos.nuevoSector, codigo: datos.codigoSector, descripcion: '' });
         sectorId = creado.id;
+        await recargar();
         setDatos((d) => ({ ...d, sectorId, crearSector: false }));
       }
       if (!sectorId) {
@@ -154,6 +155,7 @@ export default function ModalReporte({ abierto, reporte, onCerrar, sectorIdPrede
         }
         const creado = await crearSector({ nombre: datos.nuevoSector, codigo: datos.codigoSector, descripcion: '' });
         sectorId = creado.id;
+        await recargar();
       }
       if (!sectorId) throw new Error('Debe seleccionar un sector.');
 

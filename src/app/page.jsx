@@ -69,9 +69,9 @@ export default function PaginaInicio() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <TarjetaResumen href="/periodos/" etiqueta="Períodos" valor={periodos.length} Icono={IconoPeriodo} />
-        <TarjetaResumen href="/sectores/" etiqueta="Sectores" valor={sectores.length} Icono={IconoSectores} />
-        <TarjetaResumen href="/lideres/" etiqueta="Líderes" valor={lideres.length} Icono={IconoLider} />
+        <TarjetaResumen href="/registros/" etiqueta="Períodos" valor={periodos.length} Icono={IconoPeriodo} />
+        <TarjetaResumen href="/registros/" etiqueta="Sectores" valor={sectores.length} Icono={IconoSectores} />
+        <TarjetaResumen href="/registros/" etiqueta="Líderes" valor={lideres.length} Icono={IconoLider} />
         <TarjetaResumen href="/reportes/" etiqueta="Reportes (período activo)" valor={reportesActivos} Icono={IconoReporte} />
       </div>
 
@@ -84,10 +84,10 @@ export default function PaginaInicio() {
             <IconoReporte size={18} /> Registrar un reporte
           </Link>
           <Link
-            href="/analisis-general/"
+            href="/analisis-total/"
             className="flex items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700"
           >
-            <IconoAnalisis size={18} /> Ver análisis general
+            <IconoAnalisis size={18} /> Ver análisis total
           </Link>
         </div>
         {motor && (
