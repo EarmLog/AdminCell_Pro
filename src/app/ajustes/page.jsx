@@ -1,125 +1,82 @@
 'use client';
 
-/**
- * ============================================================================
- *  AJUSTES
- * ----------------------------------------------------------------------------
- *  Información del entorno y herramientas de respaldo: exportar/importar la
- *  base de datos en un archivo JSON y vaciar por completo los datos locales.
- * ============================================================================
- */
-import { useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import EncabezadoPagina from '@/components/ui/EncabezadoPagina';
+import Cargando from '@/components/ui/Cargando';
+import Boton from '@/components/ui/Boton';
+import { Campo } from '@/components/ui/Campo';
 import { usarDatos } from '@/context/DatosContext';
 import { usarNotificaciones } from '@/context/NotificacionesContext';
-import { exportarRespaldo, importarRespaldo, vaciarTodo } from '@/lib/repositorio';
-import { descargarArchivo } from '@/lib/formato';
-import { etiquetaPlataforma } from '@/lib/plataforma';
-import EncabezadoPagina from '@/components/ui/EncabezadoPagina';
-import Boton from '@/components/ui/Boton';
-import Tarjeta from '@/components/ui/Tarjeta';
-import ModalConfirmar from '@/components/ui/ModalConfirmar';
-import { IconoDescargar, IconoSubir, IconoEliminar } from '@/components/Iconos';
+import { listarSectores, eliminarSector, crearSector } from '@/lib/repositorio';
+import { IconoEliminar, IconoMas } from '@/components/Iconos';
+import Modal from '@/components/ui/Modal';
 
 export default function PaginaAjustes() {
-  const { motor, recargar } = usarDatos();
+  const { cargando } = usarDatos();
   const { notificar } = usarNotificaciones();
-  const archivoRef = useRef(null);
-  const [confirmarVaciar, setConfirmarVaciar] = useState(false);
+  const [sectores, setSectores] = useState([]);
+  const [modal, setModal] = useState({ abierto: false, nombre: '', codigo: '' });
 
-  const exportar = async () => {
-    try {
-      const datos = await exportarRespaldo();
-      const fecha = new Date().toISOString().slice(0, 10);
-      descargarArchivo(`admincell_respaldo_${fecha}.json`, JSON.stringify(datos, null, 2));
-      notificar('Respaldo descargado.');
-    } catch {
-      notificar('No se pudo generar el respaldo.', 'error');
-    }
+  const cargar = async () => {
+    const s = await listarSectores();
+    setSectores(s);
   };
 
-  const importar = async (e) => {
-    const archivo = e.target.files?.[0];
-    if (!archivo) return;
-    try {
-      const contenido = await archivo.text();
-      await importarRespaldo(JSON.parse(contenido));
-      await recargar();
-      notificar('Respaldo importado correctamente.');
-    } catch (error) {
-      notificar(error.message || 'El archivo no es un respaldo válido.', 'error');
-    } finally {
-      if (archivoRef.current) archivoRef.current.value = '';
-    }
-  };
+  useEffect(() => { cargar(); }, []);
 
-  const vaciar = async () => {
-    try {
-      await vaciarTodo();
-      await recargar();
-      notificar('Se eliminaron todos los datos locales.');
-    } catch {
-      notificar('No se pudieron eliminar los datos.', 'error');
-    } finally {
-      setConfirmarVaciar(false);
-    }
-  };
+  if (cargando) return <Cargando />;
 
   return (
     <div className="flex flex-col gap-4">
-      <EncabezadoPagina titulo="Ajustes" descripcion="Información de la aplicación y gestión de datos." />
-
-      <Tarjeta titulo="Entorno">
-        <dl className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-slate-400">Plataforma</dt>
-            <dd className="text-sm font-medium text-slate-700 dark:text-slate-200">{etiquetaPlataforma()}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-slate-400">Motor de datos</dt>
-            <dd className="text-sm font-medium text-slate-800 dark:text-slate-100">{motor?.nombre || '…'}</dd>
-          </div>
-        </dl>
-        <p className="mt-4 text-xs text-slate-400">
-          Toda la información se guarda en este dispositivo. No se envía nada a internet.
-        </p>
-      </Tarjeta>
-
-      <Tarjeta titulo="Respaldo">
-        <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
-          Exporte un archivo con todos sus datos o restaure desde un respaldo anterior.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Boton variante="secundario" onClick={exportar}>
-            <IconoDescargar size={17} /> Exportar respaldo
+      <EncabezadoPagina
+        titulo="Ajustes"
+        descripcion="Gestión de sectores (eliminar los registrados por error)"
+        acciones={
+          <Boton onClick={() => setModal({ abierto: true, nombre: '', codigo: '' })}>
+            <IconoMas size={18} /> Nuevo sector
           </Boton>
-          <Boton variante="secundario" onClick={() => archivoRef.current?.click()}>
-            <IconoSubir size={17} /> Importar respaldo
-          </Boton>
-          <input ref={archivoRef} type="file" accept="application/json,.json" hidden onChange={importar} />
-        </div>
-      </Tarjeta>
-
-      <Tarjeta titulo="Zona de riesgo">
-        <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
-          Elimina sectores, períodos, líderes y reportes de este dispositivo. Esta acción no se puede deshacer.
-        </p>
-        <Boton variante="peligro" onClick={() => setConfirmarVaciar(true)}>
-          <IconoEliminar size={17} /> Borrar todos los datos
-        </Boton>
-      </Tarjeta>
-
-      <p className="text-center text-xs text-slate-400">
-        AdminCell Pro · Plataforma: {motor?.nombre || etiquetaPlataforma()} · Los datos se guardan localmente.
-      </p>
-
-      <ModalConfirmar
-        abierto={confirmarVaciar}
-        titulo="Borrar todos los datos"
-        mensaje="¿Está seguro? Se eliminará toda la información guardada en este dispositivo y no se podrá recuperar."
-        textoConfirmar="Sí, borrar todo"
-        onConfirmar={vaciar}
-        onCancelar={() => setConfirmarVaciar(false)}
+        }
       />
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-800">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="border-b text-left">
+              <th className="p-2">Nombre</th>
+              <th className="p-2">Código</th>
+              <th className="p-2 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sectores.map((s) => (
+              <tr key={s.id} className="border-b">
+                <td className="p-2">{s.nombre}</td>
+                <td className="p-2 font-mono">{s.codigo}</td>
+                <td className="p-2 text-right">
+                  <Boton variante="peligro" onClick={async () => {
+                    if (!confirm('¿Eliminar sector? Si tiene reportes puede fallar.')) return;
+                    try { await eliminarSector(s.id); notificar('Sector eliminado'); cargar(); } catch (e) { notificar('No se pudo eliminar: ' + (e.message||''), 'error'); }
+                  }}>
+                    <IconoEliminar size={16} /> Eliminar
+                  </Boton>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <Modal abierto={modal.abierto} titulo="Crear sector" onCerrar={() => setModal({ abierto: false, nombre: '', codigo: '' })}>
+        <div className="flex flex-col gap-3">
+          <Campo etiqueta="Nombre" value={modal.nombre} onChange={(e) => setModal({ ...modal, nombre: e.target.value })} />
+          <Campo etiqueta="Código" value={modal.codigo} onChange={(e) => setModal({ ...modal, codigo: e.target.value })} />
+          <div className="flex justify-end gap-2">
+            <Boton variante="secundario" onClick={() => setModal({ abierto: false, nombre: '', codigo: '' })}>Cancelar</Boton>
+            <Boton onClick={async () => {
+              try { await crearSector({ nombre: modal.nombre, codigo: modal.codigo }); notificar('Creado'); setModal({ abierto: false, nombre: '', codigo: '' }); cargar(); }
+              catch (e) { notificar('Error: ' + (e.message||''), 'error'); }
+            }}>Guardar</Boton>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
