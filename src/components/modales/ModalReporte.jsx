@@ -4,14 +4,10 @@
  * ============================================================================
  *  MODAL DE REPORTE (registro de célula)
  * ----------------------------------------------------------------------------
- *  Permite crear o editar el reporte de una célula. Incluye:
- *    - Generador automático del código de célula (001, 002, …).
- *    - Selección de líderes participantes.
- *    - Sugerencia automática de inasistencias (personas − asistencias),
- *      que el usuario puede corregir a mano.
+ *  Permite crear o editar el reporte de una célula.
  * ============================================================================
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Modal from '@/components/ui/Modal';
 import { Campo, AreaTexto } from '@/components/ui/Campo';
 import Selector from '@/components/ui/Selector';
@@ -19,12 +15,14 @@ import Boton from '@/components/ui/Boton';
 import { IconoAuto } from '@/components/Iconos';
 import { usarNotificaciones } from '@/context/NotificacionesContext';
 import { usarDatos } from '@/context/DatosContext';
-import { crearReporte, actualizarReporte, obtenerReporte, siguienteCodigoCeldula } from '@/lib/repositorio';
+import { crearReporte, actualizarReporte, obtenerReporte, siguienteCodigoCeldula, crearSector } from '@/lib/repositorio';
 
 const VACIO = {
   sectorId: '',
-  codigo: '',
-  liderIds: [],
+  nuevoSector: '',
+  codigoSector: '',
+  crearSector: false,
+  lideresTxt: '',
   personas: '',
   asistencias: '',
   inasistencias: '',
@@ -33,25 +31,47 @@ const VACIO = {
   observaciones: ''
 };
 
+const CLAVE_LIDERES = 'admincell:ultimosLideres';
+
+function cargarLideres() {
+  try {
+    const raw = localStorage.getItem(CLAVE_LIDERES);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.slice(0, 10) : [];
+  } catch {
+    return [];
+  }
+}
+
+function guardarLideres(lista) {
+  try {
+    localStorage.setItem(CLAVE_LIDERES, JSON.stringify(lista.slice(0, 10)));
+  } catch {}
+}
+
 export default function ModalReporte({ abierto, reporte, onCerrar }) {
-  const { sectores, lideres, periodoActivo, recargar } = usarDatos();
+  const { sectores, periodoActivo, recargar } = usarDatos();
   const { notificar } = usarNotificaciones();
   const [datos, setDatos] = useState(VACIO);
   const [inasistenciasManual, setInasistenciasManual] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  const [sugerencias, setSugerencias] = useState([]);
 
-  // Al abrir, carga el reporte (edición) o parte de un formulario vacío.
   useEffect(() => {
     if (!abierto) return;
     let activo = true;
     (async () => {
+      setSugerencias(cargarLideres());
       if (reporte) {
         const completo = await obtenerReporte(reporte.id);
         if (!activo || !completo) return;
         setDatos({
           sectorId: completo.sector_id,
-          codigo: completo.codigo,
-          liderIds: completo.liderIds || [],
+          nuevoSector: '',
+          codigoSector: '',
+          crearSector: false,
+          lideresTxt: completo.lideres_nombres || '',
           personas: String(completo.personas ?? ''),
           asistencias: String(completo.asistencias ?? ''),
           inasistencias: String(completo.inasistencias ?? ''),
@@ -72,7 +92,6 @@ export default function ModalReporte({ abierto, reporte, onCerrar }) {
 
   const cambiar = (campo) => (e) => setDatos((d) => ({ ...d, [campo]: e.target.value }));
 
-  // Al cambiar personas o asistencias, sugiere las inasistencias (salvo edición manual).
   useEffect(() => {
     if (inasistenciasManual) return;
     const personas = Number(datos.personas) || 0;
@@ -81,29 +100,28 @@ export default function ModalReporte({ abierto, reporte, onCerrar }) {
   }, [datos.personas, datos.asistencias, inasistenciasManual]);
 
   const generarCodigo = async () => {
-    if (!datos.sectorId) {
-      notificar('Seleccione un sector para generar el código.', 'error');
-      return;
+    try {
+      let sectorId = datos.sectorId;
+      if (datos.crearSector || !sectorId) {
+        if (!datos.nuevoSector || !datos.codigoSector) {
+          notificar('Indique nombre y código del sector.', 'error');
+          return;
+        }
+        const creado = await crearSector({ nombre: datos.nuevoSector, codigo: datos.codigoSector, descripcion: '' });
+        sectorId = creado.id;
+        await recargar();
+        setDatos((d) => ({ ...d, sectorId, crearSector: false }));
+      }
+      if (!sectorId) {
+        notificar('Seleccione un sector.', 'error');
+        return;
+      }
+      const codigo = await siguienteCodigoCeldula(periodoActivo, Number(sectorId));
+      setDatos((d) => ({ ...d, codigo, sectorId }));
+    } catch (e) {
+      notificar(e.message || 'No se pudo generar código.', 'error');
     }
-    const codigo = await siguienteCodigoCeldula(periodoActivo, Number(datos.sectorId));
-    setDatos((d) => ({ ...d, codigo }));
   };
-
-  const alternarLider = (id) => {
-    setDatos((d) => ({
-      ...d,
-      liderIds: d.liderIds.includes(id) ? d.liderIds.filter((x) => x !== id) : [...d.liderIds, id]
-    }));
-  };
-
-  const nombresLideres = useMemo(
-    () =>
-      lideres
-        .filter((l) => datos.liderIds.includes(l.id))
-        .map((l) => l.nombre)
-        .join(' / '),
-    [lideres, datos.liderIds]
-  );
 
   const guardar = async (e) => {
     e.preventDefault();
@@ -113,7 +131,23 @@ export default function ModalReporte({ abierto, reporte, onCerrar }) {
     }
     setGuardando(true);
     try {
-      const carga = { ...datos, periodoId: periodoActivo, lideres: nombresLideres };
+      let sectorId = datos.sectorId;
+      if (datos.crearSector || !sectorId) {
+        if (!datos.nuevoSector || !datos.codigoSector) {
+          throw new Error('Falta nombre/código del sector');
+        }
+        const creado = await crearSector({ nombre: datos.nuevoSector, codigo: datos.codigoSector, descripcion: '' });
+        sectorId = creado.id;
+        await recargar();
+      }
+      const nombres = (datos.lideresTxt || '').trim();
+      if (nombres) {
+        const actual = cargarLideres();
+        const set = new Set(actual);
+        nombres.split(/[\/,;&]+/).map(x=>x.trim()).filter(Boolean).forEach(x=>set.add(x));
+        guardarLideres(Array.from(set));
+      }
+      const carga = { ...datos, periodoId: periodoActivo, sectorId, lideres: nombres };
       if (reporte) {
         await actualizarReporte(reporte.id, carga);
         notificar('Reporte actualizado correctamente.');
@@ -134,81 +168,60 @@ export default function ModalReporte({ abierto, reporte, onCerrar }) {
     <Modal abierto={abierto} titulo={reporte ? 'Editar reporte' : 'Nuevo reporte'} onCerrar={onCerrar} ancho="max-w-2xl">
       <form onSubmit={guardar} className="flex flex-col gap-4">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Selector
-            id="reporte-sector"
-            etiqueta="Sector"
-            requerido
-            placeholder="Seleccione un sector"
-            value={datos.sectorId}
-            onChange={(e) => setDatos((d) => ({ ...d, sectorId: e.target.value }))}
-            opciones={sectores.map((s) => ({ valor: s.id, etiqueta: `${s.nombre} (${s.codigo})` }))}
-          />
-          <div className="flex items-end gap-2">
-            <Campo
-              id="reporte-codigo"
-              etiqueta="Código de célula"
-              requerido
-              className="flex-1"
-              value={datos.codigo}
-              onChange={(e) => setDatos((d) => ({ ...d, codigo: e.target.value }))}
-              maxLength={20}
+          <div className="flex flex-col gap-2">
+            <Selector
+              id="reporte-sector"
+              etiqueta="Sector"
+              placeholder="Seleccione un sector"
+              value={datos.sectorId}
+              onChange={(e) => setDatos((d) => ({ ...d, sectorId: e.target.value, crearSector: !e.target.value }))}
+              opciones={sectores.map((s) => ({ valor: s.id, etiqueta: `${s.nombre} (${s.codigo})` }))}
             />
-            <Boton variante="secundario" onClick={generarCodigo} tipo="button">
+            <div className="flex items-center gap-2 text-xs">
+              <input type="checkbox" id="crear-sector" checked={datos.crearSector} onChange={(e) => setDatos((d) => ({ ...d, crearSector: e.target.checked, sectorId: '' }))} />
+              <label htmlFor="crear-sector">Crear nuevo sector</label>
+            </div>
+            {datos.crearSector && (
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Campo id="nuevo-sector" etiqueta="Nombre del sector" value={datos.nuevoSector} onChange={cambiar('nuevoSector')} />
+                <Campo id="codigo-sector" etiqueta="Código (ej. CVL)" value={datos.codigoSector} onChange={cambiar('codigoSector')} maxLength={12} />
+              </div>
+            )}
+          </div>
+          <div className="flex items-end gap-2">
+            <Campo id="reporte-codigo" etiqueta="Código de célula" className="flex-1" value={datos.codigo} onChange={(e) => setDatos((d) => ({ ...d, codigo: e.target.value }))} maxLength={20} />
+            <Boton variante="secundario" onClick={generarCodigo} type="button">
               <IconoAuto size={16} /> Auto
             </Boton>
           </div>
         </div>
 
-        <fieldset>
-          <legend className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">Líderes</legend>
-          {lideres.length === 0 ? (
-            <p className="text-sm text-slate-400">No hay líderes registrados. Puede crearlos en el módulo Líderes.</p>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {lideres.map((l) => {
-                const activo = datos.liderIds.includes(l.id);
-                return (
-                  <button
-                    type="button"
-                    key={l.id}
-                    onClick={() => alternarLider(l.id)}
-                    className={`rounded-full border px-3 py-1 text-sm transition ${
-                      activo
-                        ? 'border-marca-600 bg-marca-600 text-white'
-                        : 'border-slate-300 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700'
-                    }`}
-                  >
-                    {l.nombre}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </fieldset>
+        <Campo
+          id="lideres-txt"
+          etiqueta="Líder(es)"
+          list="lideres-sugeridos"
+          value={datos.lideresTxt}
+          onChange={cambiar('lideresTxt')}
+          placeholder="Separados por / o coma"
+        />
+        <datalist id="lideres-sugeridos">
+          {sugerencias.map((s) => (
+            <option key={s} value={s} />
+          ))}
+        </datalist>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <Campo id="reporte-personas" etiqueta="Personas" tipo="number" min="0" value={datos.personas} onChange={(e) => setDatos((d) => ({ ...d, personas: e.target.value }))} />
-          <Campo id="reporte-asistencias" etiqueta="Asistencias" tipo="number" min="0" value={datos.asistencias} onChange={(e) => setDatos((d) => ({ ...d, asistencias: e.target.value }))} />
-          <Campo
-            id="reporte-inasistencias"
-            etiqueta="Inasistencias"
-            tipo="number"
-            min="0"
-            value={datos.inasistencias}
-            onChange={(e) => {
-              setInasistenciasManual(true);
-              setDatos((d) => ({ ...d, inasistencias: e.target.value }));
-            }}
-            ayuda="Sugerida automáticamente"
-          />
-          <Campo id="reporte-invitados" etiqueta="Invitados" tipo="number" min="0" value={datos.invitados} onChange={(e) => setDatos((d) => ({ ...d, invitados: e.target.value }))} />
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+          <Campo id="reporte-personas" etiqueta="Personas" tipo="number" min="0" value={datos.personas} onChange={cambiar('personas')} />
+          <Campo id="reporte-asistencias" etiqueta="Asistencias" tipo="number" min="0" value={datos.asistencias} onChange={cambiar('asistencias')} />
+          <Campo id="reporte-inasistencias" etiqueta="Inasistencias" tipo="number" min="0" value={datos.inasistencias} onChange={(e) => { setInasistenciasManual(true); cambiar('inasistencias')(e); }} />
+          <Campo id="reporte-invitados" etiqueta="Invitados" tipo="number" min="0" value={datos.invitados} onChange={cambiar('invitados')} />
+          <Campo id="reporte-ninos" etiqueta="Niños" tipo="number" min="0" value={datos.ninos} onChange={cambiar('ninos')} />
         </div>
 
-        <Campo id="reporte-ninos" etiqueta="Niños" tipo="number" min="0" value={datos.ninos} onChange={(e) => setDatos((d) => ({ ...d, ninos: e.target.value }))} className="sm:max-w-[50%]" />
-        <AreaTexto id="reporte-obs" etiqueta="Observaciones" value={datos.observaciones} onChange={(e) => setDatos((d) => ({ ...d, observaciones: e.target.value }))} maxLength={200} />
+        <AreaTexto id="reporte-obs" etiqueta="Observaciones" value={datos.observaciones} onChange={cambiar('observaciones')} maxLength={200} />
 
         <div className="flex justify-end gap-2">
-          <Boton variante="secundario" onClick={onCerrar}>
+          <Boton variante="secundario" onClick={onCerrar} type="button">
             Cancelar
           </Boton>
           <Boton tipo="submit" disabled={guardando}>

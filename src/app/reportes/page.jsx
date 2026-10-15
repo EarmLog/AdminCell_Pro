@@ -4,8 +4,7 @@
  * ============================================================================
  *  PÁGINA DE REPORTES
  * ----------------------------------------------------------------------------
- *  Registra los reportes del período activo. Incluye filtros por sector y por
- *  código, y permite imprimir el listado.
+ *  Registra los reportes del período activo.
  * ============================================================================
  */
 import { useCallback, useEffect, useState } from 'react';
@@ -26,7 +25,7 @@ import { formatearFecha } from '@/lib/formato';
 import { IconoMas, IconoImprimir, IconoBuscar, IconoReporte } from '@/components/Iconos';
 
 export default function PaginaReportes() {
-  const { sectores, periodos, periodoActivo, periodoSeleccionado, cargando } = usarDatos();
+  const { sectores, periodos, periodoActivo, periodoSeleccionado, cargando, recargar } = usarDatos();
   const { notificar } = usarNotificaciones();
   const [filas, setFilas] = useState([]);
   const [filtroSector, setFiltroSector] = useState('');
@@ -86,7 +85,6 @@ export default function PaginaReportes() {
         }
       />
 
-      {/* Encabezado que solo aparece al imprimir */}
       <div className="hidden print:block">
         <h2 className="text-lg font-bold">Reportes de células</h2>
         <p className="text-sm">

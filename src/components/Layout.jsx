@@ -23,11 +23,8 @@ import {
 const MODULOS = [
   { href: '/', etiqueta: 'Inicio', Icono: IconoInicio },
   { href: '/periodos/', etiqueta: 'Períodos', Icono: IconoPeriodo },
-  { href: '/sectores/', etiqueta: 'Sectores', Icono: IconoSectores },
   { href: '/reportes/', etiqueta: 'Reportes', Icono: IconoReporte },
-  { href: '/lideres/', etiqueta: 'Líderes', Icono: IconoLider },
-  { href: '/analisis-general/', etiqueta: 'Análisis General', Icono: IconoAnalisis },
-  { href: '/analisis-periodo/', etiqueta: 'Análisis por Período', Icono: IconoAnalisis },
+  { href: '/analisis-total/', etiqueta: 'Análisis Total', Icono: IconoAnalisis },
   { href: '/ajustes/', etiqueta: 'Ajustes', Icono: IconoAjustes }
 ];
 
