@@ -28,6 +28,7 @@ export const TABLAS = {
     'invitados',
     'ninos',
     'observaciones',
+    'activo',
     'creado_en',
     'actualizado_en'
   ],
@@ -71,6 +72,7 @@ export const SQL_ESQUEMA = [
       invitados      INTEGER NOT NULL DEFAULT 0,
       ninos          INTEGER NOT NULL DEFAULT 0,
       observaciones  TEXT,
+      activo         INTEGER NOT NULL DEFAULT 1,
       creado_en      TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
       actualizado_en TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
       FOREIGN KEY (periodo_id) REFERENCES periodos(id) ON DELETE CASCADE,
@@ -91,6 +93,12 @@ export const SQL_ESQUEMA = [
       FOREIGN KEY (reporte_id) REFERENCES reportes(id) ON DELETE CASCADE,
       FOREIGN KEY (lider_id)   REFERENCES lideres(id)  ON DELETE CASCADE
   )`
+];
+
+// Migraciones incrementales para bases SQLite ya creadas (se ejecutan de forma
+// tolerante: si la columna ya existe, se ignora el error).
+export const SQL_MIGRACIONES = [
+  `ALTER TABLE reportes ADD COLUMN activo INTEGER NOT NULL DEFAULT 1`
 ];
 
 // ---------------------------------------------------------------------------

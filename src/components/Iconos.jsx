@@ -79,6 +79,28 @@ export const IconoAjustes = (p) => (
   </Icono>
 );
 
+export const IconoRegistro = (p) => (
+  <Icono {...p}>
+    <path d="M6 3h9l4 4v14H6z" />
+    <path d="M15 3v4h4" />
+    <path d="M9 12h6M9 16h4" />
+    <path d="M9 8h2" />
+  </Icono>
+);
+
+export const IconoPause = (p) => (
+  <Icono {...p}>
+    <rect x="6" y="5" width="4" height="14" rx="1" />
+    <rect x="14" y="5" width="4" height="14" rx="1" />
+  </Icono>
+);
+
+export const IconoPlay = (p) => (
+  <Icono {...p}>
+    <path d="M7 5l12 7-12 7z" />
+  </Icono>
+);
+
 export const IconoSol = (p) => (
   <Icono {...p}>
     <circle cx="12" cy="12" r="4" />

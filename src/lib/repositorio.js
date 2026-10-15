@@ -197,9 +197,10 @@ export async function listarReportes(periodoId, { sectorId = null, codigo = null
     const lideres = lideresPorReporte.get(r.id) || [];
     return {
       ...r,
+      activo: r.activo === 0 || r.activo === false ? 0 : 1,
       sector: sector?.nombre || '—',
       sector_codigo: sector?.codigo || '',
-      lideres_nombres: lideres.map((l) => l.nombre).join(' / '),
+      lideres_nombres: lideres.length ? lideres.map((l) => l.nombre).join(' / ') : (r.lideres || ''),
       lideres_ids: lideres.map((l) => l.id)
     };
   });
@@ -269,6 +270,7 @@ export async function crearReporte(datos) {
     invitados: aEnteroPositivo(datos.invitados),
     ninos: aEnteroPositivo(datos.ninos),
     observaciones: limpiarTexto(datos.observaciones, 200),
+    activo: 1,
     creado_en: ahora,
     actualizado_en: ahora
   });
@@ -299,6 +301,11 @@ export async function actualizarReporte(id, datos) {
 export async function eliminarReporte(id) {
   await bd.eliminarPor('reporte_lideres', { reporte_id: id });
   await bd.eliminar('reportes', id);
+}
+
+/** Habilita o inhabilita un reporte (los inhabilitados no cuentan en análisis). */
+export async function cambiarEstadoReporte(id, activo) {
+  await bd.actualizar('reportes', id, { activo: activo ? 1 : 0, actualizado_en: fechaLocalAhora() });
 }
 
 /** Cuenta reportes por período: { periodoId: cantidad }. */
@@ -333,6 +340,7 @@ export async function analisisGeneral(periodoId) {
 
   const grupos = new Map();
   for (const r of reportes) {
+    if (r.activo === 0 || r.activo === false) continue;
     if (!grupos.has(r.sector_id)) {
       const sector = mapaSectores.get(r.sector_id);
       grupos.set(r.sector_id, {
@@ -344,6 +352,8 @@ export async function analisisGeneral(periodoId) {
     }
     grupos.get(r.sector_id).lista.push(r);
   }
+
+  const activos = reportes.filter((r) => r.activo !== 0 && r.activo !== false);
 
   const filas = [...grupos.values()].map((g) => ({
     sector_id: g.sector_id,
@@ -359,13 +369,13 @@ export async function analisisGeneral(periodoId) {
   }));
 
   const totales = {
-    cantidad_reportes: reportes.length,
-    personas: sumar(reportes, 'personas'),
-    asistencias: sumar(reportes, 'asistencias'),
-    inasistentes: sumar(reportes, 'inasistencias'),
-    invitados: sumar(reportes, 'invitados'),
-    ninos: sumar(reportes, 'ninos'),
-    porcentaje: promedioPorcentaje(reportes)
+    cantidad_reportes: activos.length,
+    personas: sumar(activos, 'personas'),
+    asistencias: sumar(activos, 'asistencias'),
+    inasistentes: sumar(activos, 'inasistencias'),
+    invitados: sumar(activos, 'invitados'),
+    ninos: sumar(activos, 'ninos'),
+    porcentaje: promedioPorcentaje(activos)
   };
 
   return { filas, totales };
@@ -376,7 +386,7 @@ export async function analisisPorPeriodo() {
   const [periodos, reportes] = await Promise.all([listarPeriodos(), bd.listar('reportes')]);
 
   const filas = periodos.map((p) => {
-    const lista = reportes.filter((r) => r.periodo_id === p.id);
+    const lista = reportes.filter((r) => r.periodo_id === p.id && r.activo !== 0 && r.activo !== false);
     return {
       periodo_id: p.id,
       periodo: p.nombre,

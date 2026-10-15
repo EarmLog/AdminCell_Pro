@@ -15,12 +15,14 @@ import { informacionMotor } from '@/lib/db/dbAdapter';
 
 const DatosContext = createContext(null);
 const CLAVE_PERIODO = 'admincell:periodoActivo';
+const CLAVE_SECTOR = 'admincell:sectorActivo';
 
 export function ProveedorDatos({ children }) {
   const [sectores, setSectores] = useState([]);
   const [periodos, setPeriodos] = useState([]);
   const [lideres, setLideres] = useState([]);
   const [periodoActivo, setPeriodoActivo] = useState(null);
+  const [sectorActivo, setSectorActivo] = useState(null);
   const [motor, setMotor] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
@@ -42,6 +44,11 @@ export function ProveedorDatos({ children }) {
       const guardado = Number(localStorage.getItem(CLAVE_PERIODO));
       const existe = listaPeriodos.some((p) => p.id === guardado);
       setPeriodoActivo(existe ? guardado : listaPeriodos.at(-1)?.id ?? null);
+
+      // Restaura el sector activo guardado; si ya no existe, usa el primero.
+      const guardadoSector = Number(localStorage.getItem(CLAVE_SECTOR));
+      const existeSector = listaSectores.some((s) => s.id === guardadoSector);
+      setSectorActivo(existeSector ? guardadoSector : listaSectores[0]?.id ?? null);
     } catch (e) {
       console.error('Error al cargar datos:', e);
       setError(e);
@@ -61,7 +68,13 @@ export function ProveedorDatos({ children }) {
     if (periodoActivo) localStorage.setItem(CLAVE_PERIODO, String(periodoActivo));
   }, [periodoActivo]);
 
+  // Guarda el sector activo cuando cambia.
+  useEffect(() => {
+    if (sectorActivo) localStorage.setItem(CLAVE_SECTOR, String(sectorActivo));
+  }, [sectorActivo]);
+
   const periodoSeleccionado = periodos.find((p) => p.id === periodoActivo) || null;
+  const sectorSeleccionado = sectores.find((s) => s.id === sectorActivo) || null;
 
   return (
     <DatosContext.Provider
@@ -72,6 +85,9 @@ export function ProveedorDatos({ children }) {
         periodoActivo,
         periodoSeleccionado,
         setPeriodoActivo,
+        sectorActivo,
+        sectorSeleccionado,
+        setSectorActivo,
         motor,
         cargando,
         error,

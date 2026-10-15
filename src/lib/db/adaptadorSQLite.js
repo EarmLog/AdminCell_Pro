@@ -9,7 +9,7 @@
  *  Así la lógica de negocio (repositorio) no sabe en qué plataforma corre.
  * ============================================================================
  */
-import { SQL_ESQUEMA, TABLAS, TABLAS_SIN_ID } from './esquema.js';
+import { SQL_ESQUEMA, SQL_MIGRACIONES, TABLAS, TABLAS_SIN_ID } from './esquema.js';
 
 // Escapa un identificador (tabla/columna) usando comillas dobles.
 function comillas(identificador) {
@@ -44,6 +44,14 @@ export function crearAdaptadorSQLite(driver) {
     async iniciar() {
       for (const sentencia of SQL_ESQUEMA) {
         await driver.ejecutar(sentencia, []);
+      }
+      // Aplica migraciones tolerantes (si la columna ya existe, se ignora).
+      for (const sentencia of SQL_MIGRACIONES) {
+        try {
+          await driver.ejecutar(sentencia, []);
+        } catch {
+          /* columna ya presente */
+        }
       }
     },
 
