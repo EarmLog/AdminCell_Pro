@@ -43,7 +43,11 @@ export async function obtenerAdaptador() {
       ]);
       adaptadorActivo = crearAdaptadorSQLite(await crearDriverCapacitor());
     }
-    // Web (y respaldo): Dexie + IndexedDB
+    // Web: Supabase cuando esta configurado, respaldo Dexie
+    else if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      const { crearAdaptadorSupabase } = await import('./adaptadorSupabase.js');
+      adaptadorActivo = crearAdaptadorSupabase();
+    }
     else {
       const { crearAdaptadorDexie } = await import('./adaptadorDexie.js');
       adaptadorActivo = crearAdaptadorDexie();
