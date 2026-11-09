@@ -25,26 +25,7 @@ export async function obtenerAdaptador() {
   if (promesaInicializacion) return promesaInicializacion;
 
   promesaInicializacion = (async () => {
-    const plataforma = detectarPlataforma();
-
-    // Escritorio: Tauri + SQLite
-    if (plataforma === 'tauri') {
-      const [{ crearDriverTauri }, { crearAdaptadorSQLite }] = await Promise.all([
-        import('./driverTauri.js'),
-        import('./adaptadorSQLite.js')
-      ]);
-      adaptadorActivo = crearAdaptadorSQLite(await crearDriverTauri());
-    }
-    // Android: Capacitor + SQLite
-    else if (plataforma === 'capacitor') {
-      const [{ crearDriverCapacitor }, { crearAdaptadorSQLite }] = await Promise.all([
-        import('./driverCapacitor.js'),
-        import('./adaptadorSQLite.js')
-      ]);
-      adaptadorActivo = crearAdaptadorSQLite(await crearDriverCapacitor());
-    }
-    // Web: Supabase cuando esta configurado, respaldo Dexie
-    else if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       const { crearAdaptadorSupabase } = await import('./adaptadorSupabase.js');
       adaptadorActivo = crearAdaptadorSupabase();
     }
