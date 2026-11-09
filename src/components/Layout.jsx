@@ -16,6 +16,7 @@ import {
   IconoMenu,
   IconoCerrar
 } from '@/components/Iconos';
+import { sincronizarConSupabase } from '@/lib/db/sincronizacion.js';
 
 const MODULOS = [
   { href: '/', etiqueta: 'Inicio', Icono: IconoInicio },
@@ -139,6 +140,21 @@ function Enlaces({ pathname, alNavegar }) {
 export default function Layout({ children }) {
   const pathname = usePathname();
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [sincronizando, setSincronizando] = useState(false);
+  const [mensajeSincronizacion, setMensajeSincronizacion] = useState('');
+
+  const sincronizar = async () => {
+    setSincronizando(true);
+    setMensajeSincronizacion('');
+    try {
+      const resultados = await sincronizarConSupabase();
+      setMensajeSincronizacion(`Sincronizado: ${Object.keys(resultados).length} tablas`);
+    } catch (error) {
+      setMensajeSincronizacion('Error al sincronizar');
+    } finally {
+      setSincronizando(false);
+    }
+  };
 
   useEffect(() => {
     setMenuAbierto(false);
@@ -159,6 +175,15 @@ export default function Layout({ children }) {
           <span className="truncate text-sm font-semibold text-slate-800 lg:text-base dark:text-slate-100">AdminCell Pro</span>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={sincronizar}
+            disabled={sincronizando}
+            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+            title="Sincronizar con Supabase"
+          >
+            {sincronizando ? 'Sincronizando...' : 'Sincronizar'}
+          </button>
           <SelectorPeriodo compacto />
           <BotonTema />
         </div>
