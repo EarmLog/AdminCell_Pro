@@ -2,7 +2,7 @@
   "name": "admincell-pro",
   "version": "1.0.0",
   "private": true,
-  "description": "AdminCell Pro — sistema comunitario multiplataforma (Web) con base de datos local offline-first.",
+  "description": "AdminCell Pro — sistema comunitario web conectado a Supabase en tiempo real.",
   "author": "EarmLog",
   "license": "MIT",
   "scripts": {
@@ -12,8 +12,6 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",
-    "dexie": "^4.0.10",
-    "fake-indexeddb": "^6.2.8",
     "next": "^14.2.35",
     "react": "18.3.1",
     "react-dom": "18.3.1"

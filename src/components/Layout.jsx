@@ -16,7 +16,6 @@ import {
   IconoMenu,
   IconoCerrar
 } from '@/components/Iconos';
-import { sincronizarConSupabase } from '@/lib/db/sincronizacion.js';
 
 const MODULOS = [
   { href: '/', etiqueta: 'Inicio', Icono: IconoInicio },
@@ -140,21 +139,6 @@ function Enlaces({ pathname, alNavegar }) {
 export default function Layout({ children }) {
   const pathname = usePathname();
   const [menuAbierto, setMenuAbierto] = useState(false);
-  const [sincronizando, setSincronizando] = useState(false);
-  const [mensajeSincronizacion, setMensajeSincronizacion] = useState('');
-
-  const sincronizar = async () => {
-    setSincronizando(true);
-    setMensajeSincronizacion('');
-    try {
-      const resultados = await sincronizarConSupabase();
-      setMensajeSincronizacion(`Sincronizado: ${Object.keys(resultados).length} tablas`);
-    } catch (error) {
-      setMensajeSincronizacion('Error al sincronizar');
-    } finally {
-      setSincronizando(false);
-    }
-  };
 
   useEffect(() => {
     setMenuAbierto(false);
@@ -175,15 +159,6 @@ export default function Layout({ children }) {
           <span className="truncate text-sm font-semibold text-slate-800 lg:text-base dark:text-slate-100">AdminCell Pro</span>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={sincronizar}
-            disabled={sincronizando}
-            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
-            title="Sincronizar con Supabase"
-          >
-            {sincronizando ? 'Sincronizando...' : 'Sincronizar'}
-          </button>
           <SelectorPeriodo compacto />
           <BotonTema />
         </div>
@@ -198,7 +173,7 @@ export default function Layout({ children }) {
       <div className="lg:flex">
         <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white p-4 lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:overflow-y-auto dark:border-slate-700 dark:bg-slate-800 no-imprimir">
           <Enlaces pathname={pathname} />
-          <div className="mt-auto pt-4 text-xs text-slate-400">Datos guardados localmente en su dispositivo.</div>
+          <div className="mt-auto pt-4 text-xs text-slate-400">Conectado a Supabase en tiempo real.</div>
         </aside>
 
         <main className="contenido-imprimible min-w-0 flex-1 p-4 lg:p-6">

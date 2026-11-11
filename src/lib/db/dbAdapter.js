@@ -11,28 +11,17 @@
  *  no hay código duplicado por plataforma.
  * ============================================================================
  */
-import { detectarPlataforma } from '../plataforma.js';
+import { crearAdaptadorSupabase } from './adaptadorSupabase.js';
 
 let adaptadorActivo = null;
 let promesaInicializacion = null;
 
-/**
- * Obtiene (y crea si hace falta) el adaptador de la plataforma actual.
- * La promesa se guarda para no crear dos conexiones a la vez.
- */
 export async function obtenerAdaptador() {
   if (adaptadorActivo) return adaptadorActivo;
   if (promesaInicializacion) return promesaInicializacion;
 
   promesaInicializacion = (async () => {
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      const { crearAdaptadorSupabase } = await import('./adaptadorSupabase.js');
-      adaptadorActivo = crearAdaptadorSupabase();
-    }
-    else {
-      const { crearAdaptadorDexie } = await import('./adaptadorDexie.js');
-      adaptadorActivo = crearAdaptadorDexie();
-    }
+    adaptadorActivo = crearAdaptadorSupabase();
 
     // Crea el esquema de la base de datos (idempotente).
     await adaptadorActivo.iniciar();
