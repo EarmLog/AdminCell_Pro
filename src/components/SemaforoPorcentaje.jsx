@@ -3,17 +3,20 @@
  *  SEMÁFORO DE PORCENTAJE
  * ----------------------------------------------------------------------------
  *  Muestra el % de asistencia con un color según su nivel:
- *    - rojo   ... menos de 30 %
- *    - ámbar  ... entre 30 % y 70 %
- *    - verde  ... 70 % o más
+ *    - gris   ... 0 %
+ *    - rojo   ... 1 % a 50 %
+ *    - ámbar  ... 50 % a 79 %
+ *    - verde  ... 80 % a 100 %
  * ============================================================================
  */
 import { formatearPorcentaje } from '@/lib/formato';
 
 /** Devuelve la categoría del semáforo para un porcentaje entre 0 y 1. */
 export function nivelPorcentaje(porcentaje) {
-  if (porcentaje < 0.3) return { nivel: 'bajo', color: 'text-red-600 dark:text-red-400', fondo: 'bg-red-500' };
-  if (porcentaje < 0.7) return { nivel: 'medio', color: 'text-amber-600 dark:text-amber-400', fondo: 'bg-amber-500' };
+  const p = Number(porcentaje) || 0;
+  if (p <= 0) return { nivel: 'neutro', color: 'text-slate-600 dark:text-slate-400', fondo: 'bg-slate-500' };
+  if (p <= 0.5) return { nivel: 'bajo', color: 'text-red-600 dark:text-red-400', fondo: 'bg-red-500' };
+  if (p <= 0.79) return { nivel: 'medio', color: 'text-amber-600 dark:text-amber-400', fondo: 'bg-amber-500' };
   return { nivel: 'alto', color: 'text-green-600 dark:text-green-400', fondo: 'bg-green-500' };
 }
 

@@ -10,6 +10,6 @@ export function obtenerClienteSupabase() {
 
   if (!url || !anonKey) return null;
 
-  cliente = createClient(url, anonKey, { db: { schema: 'AdminCellPro' } });
+  cliente = createClient(url, anonKey, { db: { schema: 'public' } });
   return cliente;
 }

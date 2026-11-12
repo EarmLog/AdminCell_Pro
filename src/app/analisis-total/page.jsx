@@ -64,7 +64,7 @@ export default function PaginaAnalisisTotal() {
         <EstadoVacio titulo="Sin datos en este período" descripcion="Registre reportes para ver los análisis." icono={<IconoAnalisis size={30} />} />
       ) : (
         <>
-          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
             <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
               <p className="text-xs uppercase text-slate-400">Reportes</p>
               <p className="text-2xl font-bold">{totales.cantidad_reportes}</p>
@@ -76,6 +76,10 @@ export default function PaginaAnalisisTotal() {
             <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
               <p className="text-xs uppercase text-slate-400">Asistencias</p>
               <p className="text-2xl font-bold">{totales.asistencias}</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
+              <p className="text-xs uppercase text-slate-400">Invitados</p>
+              <p className="text-2xl font-bold">{totales.invitados}</p>
             </div>
             <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
               <p className="text-xs uppercase text-slate-400">Asistencia</p>
