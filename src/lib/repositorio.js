@@ -259,7 +259,7 @@ export async function crearReporte(datos) {
   if (!codigo) throw new Error('El código de la célula es obligatorio.');
 
   const ahora = fechaLocalAhora();
-  const id = await bd.insertar('reportes', {
+  const creado = await bd.insertar('reportes', {
     periodo_id: Number(datos.periodoId),
     sector_id: Number(datos.sectorId),
     codigo,
@@ -274,6 +274,7 @@ export async function crearReporte(datos) {
     creado_en: ahora,
     actualizado_en: ahora
   });
+  const id = creado?.id ?? creado;
   await guardarLideresDeReporte(id, datos.liderIds);
   return id;
 }

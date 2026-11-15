@@ -3,7 +3,7 @@ import { obtenerClienteSupabase } from './clienteSupabase.js';
 const COLUMNAS_VALIDAS = {
   sectores: ['id', 'nombre', 'codigo', 'descripcion', 'creado_en'],
   periodos: ['id', 'nombre', 'fecha_inicio', 'fecha_fin', 'creado_en'],
-  reportes: ['id', 'periodo_id', 'sector_id', 'personas', 'asistencias', 'inasistencias', 'invitados', 'ninos', 'activo', 'observaciones', 'creado_en', 'actualizado_en'],
+  reportes: ['id', 'periodo_id', 'sector_id', 'codigo', 'lideres', 'personas', 'asistencias', 'inasistencias', 'invitados', 'ninos', 'activo', 'observaciones', 'creado_en', 'actualizado_en'],
   lideres: ['id', 'nombre', 'telefono', 'creado_en'],
   reporte_lideres: ['reporte_id', 'lider_id']
 };
@@ -65,8 +65,12 @@ export function crearAdaptadorSupabase() {
   async function insertar(tabla, datos) {
     validarTabla(tabla);
     validarColumnas(tabla, datos);
-    const { error } = await cliente.from(tabla).insert(datos);
+    const { data, error } = TABLAS_SIN_ID.includes(tabla)
+      ? await cliente.from(tabla).insert(datos)
+      : await cliente.from(tabla).insert(datos).select().single();
     if (error) throw error;
+    if (TABLAS_SIN_ID.includes(tabla)) return datos;
+    return data;
   }
 
   async function actualizar(tabla, id, datos) {
